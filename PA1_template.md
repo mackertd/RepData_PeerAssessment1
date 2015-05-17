@@ -21,7 +21,8 @@ The set was acquired from https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2
 
 The dplyr library is utilized for the analysis and ggplot2 for the plots of the data
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 require(dplyr)
 require(ggplot2)
 ```
@@ -31,7 +32,8 @@ require(ggplot2)
 The data file is manually unzipped within the current working directory of R and is named activity.csv
 The data file is loaded into a data.frame named activityData utilizing the read.table function wrapped in a function called loadfile
 
-```{r}
+
+```r
 loadfile <- function(directoryPath, filePath, colSep) {
       
       ## Form the path; handle the data file is in the same directory as the working directory
@@ -67,23 +69,46 @@ dataSetFile <- "activity.csv"
 # Load the data file
 
 activityData <- loadfile(baseDirectory, dataSetFile, ",")
-
 ```
 
 # Explore the data
 
 Once the data is loaded it explored utilizing the str(), head(), and names() functions. These functions show the number of rows, variables, and column names of the data set as well as the fact there is NA data in a minimum of the steps column.
 
-```{r}
+
+```r
 str(activityData)
 ```
 
-```{r}
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : chr  "2012-10-01" "2012-10-01" "2012-10-01" "2012-10-01" ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+```
+
+
+```r
 head(activityData)
 ```
 
-```{r}
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
+
+
+```r
 names(activityData)
+```
+
+```
+## [1] "steps"    "date"     "interval"
 ```
 
 # Part 1 - What is mean total number of steps taken per day?
@@ -100,7 +125,8 @@ This section asks three specific questions:
 
 To answer the two of the three question the rows with the steps set to NA are removed (activityNoNA variable) and the data is grouped by date (groupByDate variable). 
 
-```{r}
+
+```r
 # Remove the NA Data
 
 activityNoNA <- activityData %>% filter(complete.cases(activityData))
@@ -112,7 +138,8 @@ groupByDate <- group_by(activityNoNA, date)
 
 The sum and the mean of the number of steps taken per day are calculated and stored in the partOneSummary variable.  The column names are relabeled to meaningful names.
 
-```{r}
+
+```r
 # Summarise the data with steps set to 0
 
 partOneSummary <- summarise(groupByDate, sum(steps), mean(steps))
@@ -124,13 +151,32 @@ colnames(partOneSummary) <- c('date', 'sum', 'mean')
 
 ### To answer the first question the summary data shows the sum and mean of each day with the NA's removed
 
-```{r}
+
+```r
 print(partOneSummary)
+```
+
+```
+## Source: local data frame [53 x 3]
+## 
+##          date   sum     mean
+## 1  2012-10-02   126  0.43750
+## 2  2012-10-03 11352 39.41667
+## 3  2012-10-04 12116 42.06944
+## 4  2012-10-05 13294 46.15972
+## 5  2012-10-06 15420 53.54167
+## 6  2012-10-07 11015 38.24653
+## 7  2012-10-09 12811 44.48264
+## 8  2012-10-10  9900 34.37500
+## 9  2012-10-11 10304 35.77778
+## 10 2012-10-12 17382 60.35417
+## ..        ...   ...      ...
 ```
 
 ### The second question requires a histogram of the total steps taken per day
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 # Create a histgrom
 
 plot <- ggplot(data = partOneSummary, aes(sum)) + 
@@ -142,11 +188,14 @@ plot <- ggplot(data = partOneSummary, aes(sum)) +
 print(plot)
 ```
 
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
+
 ### The third question in part on requires the mean and the median ofthe total number steps taken per day.
 
 All steps with the value of 0 were removed to calculate the median since with majority of median functions within R 0 values caused the median to returned as 0.  The sum, mean, median, min, and max values were included to understand the data set.  The only variance in the values were the mean since by removing the 0 step rows resulted in a different count to calculate the mean.
 
-```{r}
+
+```r
 # Remove all steps = 0
 
 groupByDateNoZeros <- filter(groupByDate, steps > 0)
@@ -160,6 +209,23 @@ colnames(partOneMedian) <- c('date', 'sum', 'mean', 'median', 'min', 'max')
 print(partOneMedian)
 ```
 
+```
+## Source: local data frame [53 x 6]
+## 
+##          date   sum      mean median min max
+## 1  2012-10-02   126  63.00000   63.0   9 117
+## 2  2012-10-03 11352 140.14815   61.0   4 613
+## 3  2012-10-04 12116 121.16000   56.5   1 547
+## 4  2012-10-05 13294 154.58140   66.0   2 555
+## 5  2012-10-06 15420 145.47170   67.0   4 526
+## 6  2012-10-07 11015 101.99074   52.5   7 523
+## 7  2012-10-09 12811 134.85263   48.0   3 748
+## 8  2012-10-10  9900  95.19231   56.5   7 413
+## 9  2012-10-11 10304 137.38667   35.0   4 748
+## 10 2012-10-12 17382 156.59459   46.0   2 802
+## ..        ...   ...       ...    ... ... ...
+```
+
 # Part 2 - What is the average daily activity pattern?
 
 This section asks two specific questions:
@@ -171,7 +237,8 @@ This section asks two specific questions:
 
 The data is grouped by interval using the activityNoNA data.frame and the mean is calculated.
 
-```{r}
+
+```r
 groupByInterval <- group_by(activityNoNA, interval)
 
 partTwoMean <- summarise(groupByInterval, mean(steps))
@@ -181,7 +248,8 @@ colnames(partTwoMean) <- c('interval', 'mean')
 
 ### The first question of Part 2 requires a time series plot of the average number of steps taken, averaged across all days
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 plot2 = ggplot(data = partTwoMean, aes(x = interval, y = mean, color = mean)) + 
       geom_line(size = 1) +
       scale_x_continuous(breaks = pretty(partTwoMean$interval, n = 10)) +
@@ -192,14 +260,24 @@ plot2 = ggplot(data = partTwoMean, aes(x = interval, y = mean, color = mean)) +
 print(plot2)
 ```
 
+![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12-1.png) 
+
 ### The second question of Part 2 asks which 5 minute interval has the maximum number of steps
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 # Get the 5 minute interval with maximum average steps
 
 maxInterval <- top_n(partTwoMean, n = 1)
 
 print(maxInterval)
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval     mean
+## 1      835 206.1698
 ```
 
 # Part 3 - Imputing missing values
@@ -218,21 +296,40 @@ This section has seven questions or requirements:
 
 Using the original data.frame variable activityData with no NA values removed we can ascertain that there are 2304 missing values in the data set. The interval and date columns of the activityData set were test for NA values.
 
-```{r}
+
+```r
 # Calculate the number of rows with NA values
 
 naRowCount <- nrow(filter(activityData, is.na(steps)))
 print(naRowCount)
+```
 
+```
+## [1] 2304
+```
+
+```r
 any(is.na(activityData$date))
+```
+
+```
+## [1] FALSE
+```
+
+```r
 any(is.na(activityData$interval))
+```
+
+```
+## [1] FALSE
 ```
 
 ### The second and third requirement of Part 3 requires a strategy to replace the NA values in the steps portion of the data set and create a new data set with the values filled in.  The new data.frame is activityNAReplaced.
 
 The approach selected is to replace the NA values with the median of all steps in the data set which is 56.
 
-```{r}
+
+```r
 # Replace the NA values with the median of the entire data set (steps)
 
 activityNAReplaced <- mutate(activityData, steps = replace(steps, is.na(steps), median(groupByDateNoZeros$steps, na.rm = TRUE)))
@@ -242,13 +339,15 @@ activityNAReplaced <- mutate(activityData, steps = replace(steps, is.na(steps), 
 
 The data is grouped by date.
 
-```{r}
+
+```r
 groupByDateNAReplaced <- group_by(activityNAReplaced, date)
 ```
 
 The data is summarized by calculating the sum, mean, and the min and max steps.
 
-```{r}
+
+```r
 part3Summary <- summarise(groupByDateNAReplaced, sum(steps), mean(steps), min(steps), max(steps))
 
 colnames(part3Summary) <- c('date', 'sum', 'mean', 'min', 'max')
@@ -256,9 +355,27 @@ colnames(part3Summary) <- c('date', 'sum', 'mean', 'min', 'max')
 print(part3Summary)
 ```
 
+```
+## Source: local data frame [61 x 5]
+## 
+##          date   sum     mean min max
+## 1  2012-10-01 16128 56.00000  56  56
+## 2  2012-10-02   126  0.43750   0 117
+## 3  2012-10-03 11352 39.41667   0 613
+## 4  2012-10-04 12116 42.06944   0 547
+## 5  2012-10-05 13294 46.15972   0 555
+## 6  2012-10-06 15420 53.54167   0 526
+## 7  2012-10-07 11015 38.24653   0 523
+## 8  2012-10-08 16128 56.00000  56  56
+## 9  2012-10-09 12811 44.48264   0 748
+## 10 2012-10-10  9900 34.37500   0 413
+## ..        ...   ...      ... ... ...
+```
+
 ### The fourth requirement of Part 3 is to create a histogram of the total number of steps each day.
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 plot3 <- ggplot(data = part3Summary, aes(sum)) + 
       geom_histogram(col="black", aes(fill=..count..)) +
       labs(title = "Total Number Of Steps Per Day") +
@@ -268,6 +385,8 @@ plot3 <- ggplot(data = part3Summary, aes(sum)) +
 print(plot3)
 ```
 
+![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18-1.png) 
+
 ### The fifth requirement is to calculate the mean and the median of the steps each day.
 
 To calculate the median all 0 values were removed.  All steps with the value of 0 were removed to calculate the median since with majority of median functions within R 0 values caused the median to returned as 0.  The sum, mean, median, min, and max values were included to understand the data set.  The only variance in the values were the mean since by removing the 0 step rows resulted in a different count to calculate the mean.
@@ -276,7 +395,8 @@ Refer to the data preparation section for the fourth requirement of Part 3 for t
 
 Note: A new data set can be created for presentation purposes.
 
-```{r}
+
+```r
 # Calculate the median
 
 groupByDateNAReplacedNo0 <- filter(groupByDateNAReplaced, steps > 0)
@@ -286,14 +406,52 @@ part3MedianSummary <- summarise(groupByDateNAReplacedNo0, sum(steps), median(ste
 print(part3MedianSummary)
 ```
 
+```
+## Source: local data frame [61 x 5]
+## 
+##          date sum(steps) median(steps) min(steps) max(steps)
+## 1  2012-10-01      16128          56.0         56         56
+## 2  2012-10-02        126          63.0          9        117
+## 3  2012-10-03      11352          61.0          4        613
+## 4  2012-10-04      12116          56.5          1        547
+## 5  2012-10-05      13294          66.0          2        555
+## 6  2012-10-06      15420          67.0          4        526
+## 7  2012-10-07      11015          52.5          7        523
+## 8  2012-10-08      16128          56.0         56         56
+## 9  2012-10-09      12811          48.0          3        748
+## 10 2012-10-10       9900          56.5          7        413
+## ..        ...        ...           ...        ...        ...
+```
+
 ### The sixth requirement is determine if the values differ with the NA values filled in.
 
 The answer is yes by looking at the first three rows of the data with the NA values removed versus the data with the NA values filled in.
 
-```{r}
-head(partOneSummary, n = 3)
 
+```r
+head(partOneSummary, n = 3)
+```
+
+```
+## Source: local data frame [3 x 3]
+## 
+##         date   sum     mean
+## 1 2012-10-02   126  0.43750
+## 2 2012-10-03 11352 39.41667
+## 3 2012-10-04 12116 42.06944
+```
+
+```r
 head(part3Summary, n = 3)
+```
+
+```
+## Source: local data frame [3 x 5]
+## 
+##         date   sum     mean min max
+## 1 2012-10-01 16128 56.00000  56  56
+## 2 2012-10-02   126  0.43750   0 117
+## 3 2012-10-03 11352 39.41667   0 613
 ```
 
 Note the in the first data set with NA removed 2012-10-01 has no entry since all values were NA.  Note the change in the mean for 2012-10-02 and 2012-10-03 with the introduction of the median (56) to the NA rows.
@@ -315,7 +473,8 @@ This section has two requirements:
 
 This is created by testing each date in the groupByDateNAReplaced data.frame using the weekday function for the type of day (weekday or weekend) and adding a column to the data.frame called dayType.
 
-```{r}
+
+```r
 groupByDateNAReplaced$dayType <- ifelse(weekdays(as.Date(groupByDateNAReplaced$date)) %in% c("Satuday", "Sunday"), "Weekend", "Weekday")
 ```
 
@@ -323,7 +482,8 @@ groupByDateNAReplaced$dayType <- ifelse(weekdays(as.Date(groupByDateNAReplaced$d
 
 The data is grouped by interval and day type and stored in a data.frame called groupByIntervalDays.  The sum, mean, min, and max steps are calculated to create the plot.
 
-```{r}
+
+```r
 groupByIntervalDays <- group_by(groupByDateNAReplaced, interval, dayType)
 
 part5Summary <- summarise(groupByIntervalDays, sum(steps), mean(steps), min(steps), max(steps))
@@ -335,7 +495,8 @@ colnames(part5Summary) <- c('interval', 'dayType', "sum", 'mean', 'min', 'max')
 
 One interesting trend shown in the plot is that activity on the weekend typically starts around 0800 in the morning or 1000.  There is more activity during the day on the weekend versus the weekday which may be a result of work versus leisure time.  In the weekday panel there is a spike in activity from 0800 - 1000 which may indicate a combination of exercise or other activity combined with going to work. This spike is not reflect in the 1600 - 1800 time frame which may indicate only movement to and from work.
 
-```{r message=FALSE, warning=FALSE}
+
+```r
 plot4 <- ggplot(data = part5Summary, mapping = aes(x = interval, y = mean, color = mean)) + 
       geom_line(size = 1) + 
       facet_grid(dayType ~ .) + 
@@ -346,3 +507,5 @@ plot4 <- ggplot(data = part5Summary, mapping = aes(x = interval, y = mean, color
 
 print(plot4)
 ```
+
+![plot of chunk unnamed-chunk-23](figure/unnamed-chunk-23-1.png) 
